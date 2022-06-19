@@ -14,20 +14,21 @@ namespace ShgitObjects
         static Socket sender = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
         public static string user = "";
         static string password = "";
+        static byte[] buffer = new byte[1024];
         public static void ConnectToDatabase()
         {
             try
             {
-
                 sender.Connect(localEndPoint);
                 string log = "";
+                Console.WriteLine("s for signup, l for login");
                 while (log!="s" && log!="l")
                 {
                     log = Console.ReadLine().ToLower();
                 }
 
                 string loginMessage = "";
-                while(loginMessage!="logged in")
+                while(loginMessage!="logged in") //loop active until user logged in
                 {
                     Console.WriteLine("user:");
                     user = Console.ReadLine();
@@ -64,11 +65,49 @@ namespace ShgitObjects
             
         }
 
-        public static void Commit (string file, string nodePath)
+        public static void Quit()
         {
-            sender.Send(System.Text.Encoding.UTF8.GetBytes("upload"));
-            sender.Send(System.Text.Encoding.UTF8.GetBytes(file));
-            sender.SendFile(nodePath);
+            sender.Send(Encoding.UTF8.GetBytes("quit"));
+            sender.Close();
+        }
+
+        public static void UploadGraph (string absolutePath, string relativePath, string graph)
+        {
+            byte[] data = new byte[1024];
+            byte[] command = Encoding.UTF8.GetBytes("upload " + graph + " " + user);
+            byte[] storagePath = Encoding.UTF8.GetBytes(relativePath);
+            byte[] fileSize = Encoding.UTF8.GetBytes(new FileInfo(absolutePath).Length.ToString());
+
+            command.CopyTo(data, 0);
+            sender.Send(data);
+            Array.Clear(data, 0, data.Length);
+
+            storagePath.CopyTo(data, 0);
+            sender.Send(data);
+            Array.Clear(data, 0, data.Length);
+
+            fileSize.CopyTo(data, 0);
+            sender.Send(data);
+            Array.Clear(data, 0, data.Length);
+
+            sender.SendFile(absolutePath);
+        }
+
+        public static string Info(string command, string location)
+        {
+            return "benis";
+        }
+
+        public static void DownloadGraph(string graph, string graphName)
+        {
+            sender.Send(Encoding.UTF8.GetBytes($"download {graphName} {user}"));
+            string data = "";
+            
+            //while ()
+            //{
+            //    int dataLength = sender.Receive(buffer);
+            //    data = Encoding.UTF8.GetString(buffer, 0, dataLength);
+            //}
         }
     }
 }
